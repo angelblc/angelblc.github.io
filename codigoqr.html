@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Verificar QR</title>
+  <script src="https://unpkg.com/html5-qrcode/minified/html5-qrcode.min.js"></script>
+  <style>
+    #reader {
+      width: 300px;
+      margin: auto;
+    }
+    #result {
+      margin-top: 20px;
+      font-size: 18px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <h1 style="text-align: center;">Verificación de QR</h1>
+  <div id="reader"></div>
+  <div id="result">Escanea un código QR</div>
+  <script>
+    // Listado de códigos QR válidos y su estado
+    const validCodes = [
+      { code: "12345", used: false },
+      { code: "abcde", used: false },
+      { code: "qwerty", used: false }
+    ];
+
+    // Función para manejar la validación del código QR
+    function onScanSuccess(decodedText, decodedResult) {
+      const resultDiv = document.getElementById("result");
+
+      // Buscar si el código está en el listado
+      const foundCode = validCodes.find(item => item.code === decodedText);
+
+      if (foundCode) {
+        if (!foundCode.used) {
+          // Marcar como usado
+          foundCode.used = true;
+          resultDiv.innerHTML = `<span style="color: green;">Código válido y marcado como usado: ${decodedText}</span>`;
+        } else {
+          // Ya está usado
+          resultDiv.innerHTML = `<span style="color: orange;">Código ya utilizado: ${decodedText}</span>`;
+        }
+      } else {
+        // No es válido
+        resultDiv.innerHTML = `<span style="color: red;">Código inválido: ${decodedText}</span>`;
+      }
+
+      // Detener el escaneo después de una lectura exitosa
+      html5QrcodeScanner.clear();
+    }
+
+    // Configurar el lector QR
+    const html5QrcodeScanner = new Html5QrcodeScanner("reader", {
+      fps: 10,  // Cuadros por segundo
+      qrbox: 250 // Tamaño del área de escaneo
+    });
+
+    html5QrcodeScanner.render(onScanSuccess);
+  </script>
+</body>
+</html>
+
