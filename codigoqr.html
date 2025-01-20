@@ -3,65 +3,101 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Verificar QR</title>
-  <script src="https://unpkg.com/html5-qrcode/minified/html5-qrcode.min.js"></script>
+  <title>Verificador de Códigos QR</title>
+  <script src="https://unpkg.com/jsqr/dist/jsQR.js"></script>
   <style>
-    #reader {
-      width: 300px;
-      margin: auto;
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+    }
+    #canvas {
+      display: none;
+    }
+    #qrScanner {
+      margin-top: 20px;
+      border: 2px solid #333;
+      padding: 10px;
+      border-radius: 8px;
+      display: inline-block;
     }
     #result {
       margin-top: 20px;
       font-size: 18px;
-      text-align: center;
     }
   </style>
 </head>
 <body>
-  <h1 style="text-align: center;">Verificación de QR</h1>
-  <div id="reader"></div>
-  <div id="result">Escanea un código QR</div>
+  <h1>Verificador de Códigos QR</h1>
+  <p>Escanea un código QR para verificar su validez.</p>
+
+  <!-- Elemento donde se verá la cámara -->
+  <video id="video" width="320" height="240" autoplay></video>
+  <canvas id="canvas" width="320" height="240"></canvas>
+
+  <div id="qrScanner">
+    <h2>Resultado:</h2>
+    <p id="result">Esperando código QR...</p>
+  </div>
+
   <script>
-    // Listado de códigos QR válidos y su estado
-    const validCodes = [
-      { code: "12345", used: false },
-      { code: "abcde", used: false },
-      { code: "qwerty", used: false }
+    // Lista de códigos QR válidos (puedes cambiar esta lista)
+    const validQRCodes = [
+      "hola1",
+      "codigo2",
+      "codigo3",
+      "codigo4"
     ];
 
-    // Función para manejar la validación del código QR
-    function onScanSuccess(decodedText, decodedResult) {
-      const resultDiv = document.getElementById("result");
+    // Lista de códigos QR ya usados
+    const usedQRCodes = [];
 
-      // Buscar si el código está en el listado
-      const foundCode = validCodes.find(item => item.code === decodedText);
+    // Variables de acceso a la cámara y escaneo
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const result = document.getElementById('result');
+    const context = canvas.getContext('2d');
 
-      if (foundCode) {
-        if (!foundCode.used) {
-          // Marcar como usado
-          foundCode.used = true;
-          resultDiv.innerHTML = `<span style="color: green;">Código válido y marcado como usado: ${decodedText}</span>`;
-        } else {
-          // Ya está usado
-          resultDiv.innerHTML = `<span style="color: orange;">Código ya utilizado: ${decodedText}</span>`;
-        }
-      } else {
-        // No es válido
-        resultDiv.innerHTML = `<span style="color: red;">Código inválido: ${decodedText}</span>`;
-      }
-
-      // Detener el escaneo después de una lectura exitosa
-      html5QrcodeScanner.clear();
-    }
-
-    // Configurar el lector QR
-    const html5QrcodeScanner = new Html5QrcodeScanner("reader", {
-      fps: 10,  // Cuadros por segundo
-      qrbox: 250 // Tamaño del área de escaneo
+    // Acceder a la cámara del móvil
+    navigator.mediaDevices.getUserMedia({
+      video: { facingMode: "environment" } // usaremos la cámara trasera del móvil
+    }).then(function(stream) {
+      video.srcObject = stream;
+      video.setAttribute("playsinline", true); // Requisito para iOS
+      video.play();
+      requestAnimationFrame(scanQRCode);
+    }).catch(function(error) {
+      console.error("Error al acceder a la cámara: ", error);
+      result.innerText = "Error al acceder a la cámara.";
     });
 
-    html5QrcodeScanner.render(onScanSuccess);
+    // Función para escanear el QR cada vez que la cámara se actualiza
+    function scanQRCode() {
+      if (video.readyState === video.HAVE_ENOUGH_DATA) {
+        // Dibujar el video en el canvas
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+        const code = jsQR(imageData.data, canvas.width, canvas.height);
+
+        if (code) {
+          // Si se detecta un QR, comprobamos si está en la lista de válidos
+          const qrData = code.data;
+          
+          if (usedQRCodes.includes(qrData)) {
+            // Si el código ya ha sido usado
+            result.innerText = `Este código QR ya ha sido utilizado: ${qrData}`;
+          } else if (validQRCodes.includes(qrData)) {
+            // Si el código es válido y no ha sido usado
+            usedQRCodes.push(qrData); // Marcamos el código como usado
+            result.innerText = `Código QR válido: ${qrData}. Entrada validada.`;
+          } else {
+            // Si el código no está en la lista de válidos
+            result.innerText = `Código QR no válido: ${qrData}`;
+          }
+        }
+      }
+      // Continuar escaneando
+      requestAnimationFrame(scanQRCode);
+    }
   </script>
 </body>
 </html>
-
