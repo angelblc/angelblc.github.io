@@ -81,9 +81,9 @@
         if (code) {
           // Si se detecta un QR, comprobamos si está en la lista de válidos
           const qrData = code.data;
-          
+
+          // Verificamos si el código QR ya ha sido usado
           if (usedQRCodes.includes(qrData)) {
-            // Si el código ya ha sido usado
             result.innerText = `Este código QR ya ha sido utilizado: ${qrData}`;
           } else if (validQRCodes.includes(qrData)) {
             // Si el código es válido y no ha sido usado
@@ -96,7 +96,7 @@
         }
       }
       // Continuar escaneando
-      requestAnimationFrame(scanQRCode);
+      setTimeout(() => requestAnimationFrame(scanQRCode), 500);  // Añadido un pequeño delay para evitar múltiples lecturas
     }
   </script>
 </body>
