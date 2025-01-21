@@ -40,7 +40,7 @@
   </div>
 
   <script>
-    // Lista de códigos QR válidos (puedes cambiar esta lista)
+    // Lista de códigos QR válidos
     const validQRCodes = [
       "hola1",
       "codigo2",
@@ -48,56 +48,52 @@
       "codigo4"
     ];
 
-    // Lista de códigos QR ya usados
     const usedQRCodes = [];
-
-    // Variables de acceso a la cámara y escaneo
     const video = document.getElementById('video');
     const canvas = document.getElementById('canvas');
     const result = document.getElementById('result');
     const context = canvas.getContext('2d');
 
-    // Acceder a la cámara del móvil
-    navigator.mediaDevices.getUserMedia({
-      video: { facingMode: "environment" } // usaremos la cámara trasera del móvil
-    }).then(function(stream) {
-      video.srcObject = stream;
-      video.setAttribute("playsinline", true); // Requisito para iOS
-      video.play();
-      requestAnimationFrame(scanQRCode);
-    }).catch(function(error) {
-      console.error("Error al acceder a la cámara: ", error);
-      result.innerText = "Error al acceder a la cámara.";
-    });
+    // Función para iniciar el flujo de la cámara
+    function startCamera() {
+      navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "environment" }
+      }).then(function(stream) {
+        video.srcObject = stream;
+        video.setAttribute("playsinline", true);
+        video.play();
+        requestAnimationFrame(scanQRCode);
+      }).catch(function(error) {
+        console.error("Error al acceder a la cámara: ", error);
+        result.innerText = "Error al acceder a la cámara. Verifica los permisos.";
+      });
+    }
 
     // Función para escanear el QR cada vez que la cámara se actualiza
     function scanQRCode() {
       if (video.readyState === video.HAVE_ENOUGH_DATA) {
-        // Dibujar el video en el canvas
         context.drawImage(video, 0, 0, canvas.width, canvas.height);
         const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
         const code = jsQR(imageData.data, canvas.width, canvas.height);
 
         if (code) {
-          // Si se detecta un QR, comprobamos si está en la lista de válidos
           const qrData = code.data;
 
-          // Verificamos si el código QR ya ha sido usado
           if (usedQRCodes.includes(qrData)) {
             result.innerText = `Este código QR ya ha sido utilizado: ${qrData}`;
           } else if (validQRCodes.includes(qrData)) {
-            // Si el código es válido y no ha sido usado
-            usedQRCodes.push(qrData); // Marcamos el código como usado
+            usedQRCodes.push(qrData);
             result.innerText = `Código QR válido: ${qrData}. Entrada validada.`;
           } else {
-            // Si el código no está en la lista de válidos
             result.innerText = `Código QR no válido: ${qrData}`;
           }
         }
       }
-      // Continuar escaneando
-      setTimeout(() => requestAnimationFrame(scanQRCode), 500);  // Añadido un pequeño delay para evitar múltiples lecturas
+      setTimeout(() => requestAnimationFrame(scanQRCode), 500);
     }
+
+    // Llamamos a la función para iniciar la cámara
+    startCamera();
   </script>
 </body>
 </html>
