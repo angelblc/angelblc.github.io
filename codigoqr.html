@@ -86,19 +86,4 @@
             // Si el código ya ha sido usado
             result.innerText = `Este código QR ya ha sido utilizado: ${qrData}`;
           } else if (validQRCodes.includes(qrData)) {
-            // Si el código es válido y no ha sido usado
-            usedQRCodes.push(qrData); // Marcamos el código como usado
-            localStorage.setItem('usedQRCodes', JSON.stringify(usedQRCodes)); // Guardamos la lista actualizada en el almacenamiento local
-            result.innerText = `Código QR válido: ${qrData}. Entrada validada.`;
-          } else {
-            // Si el código no está en la lista de válidos
-            result.innerText = `Código QR no válido: ${qrData}`;
-          }
-        }
-      }
-      // Continuar escaneando
-      requestAnimationFrame(scanQRCode);
-    }
-  </script>
-</body>
-</html>
+            // Si el código
